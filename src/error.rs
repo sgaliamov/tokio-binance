@@ -1,12 +1,12 @@
-use std::fmt;
-use std::error;
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use std::error;
+use std::fmt;
 
 pub type Result<T> = std::result::Result<T, Error>;
 pub(crate) type BoxError = Box<dyn error::Error + Send + Sync>;
 
 #[derive(Debug)]
-pub(super) enum Kind {
+pub enum Kind {
     Binance,
     SerdeUrlEncoded,
     Reqwest,
@@ -23,14 +23,17 @@ pub struct WsCloseError {
 }
 
 impl WsCloseError {
-    pub(super) fn new<T: Into<String>>(code: CloseCode, reason: T) -> Self {
-        WsCloseError { code, reason: reason.into() }
+    pub fn new<T: Into<String>>(code: CloseCode, reason: T) -> Self {
+        WsCloseError {
+            code,
+            reason: reason.into(),
+        }
     }
 }
 
 impl fmt::Display for WsCloseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.reason)
+        write!(f, "{}: {}", self.code, self.reason)
     }
 }
 
@@ -40,31 +43,26 @@ impl error::Error for WsCloseError {
     }
 }
 
+#[derive(Debug)]
 pub struct ClientError {
     code: u16,
     reason: String,
-    message: String
+    message: String,
 }
 
 impl ClientError {
-    pub(super) fn new<T: Into<String>>(code: u16, reason: T, message: T) -> Self {
-        ClientError { code, reason: reason.into(), message: message.into() }
+    pub fn new<T: Into<String>>(code: u16, reason: T, message: T) -> Self {
+        ClientError {
+            code,
+            reason: reason.into(),
+            message: message.into(),
+        }
     }
 }
 
 impl fmt::Display for ClientError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl fmt::Debug for ClientError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut builder = f.debug_struct("ClientError");
-
-        builder.field("code", &self.code);
-        builder.field("reason", &self.reason);
-        builder.finish()
+        write!(f, "{:?}", self)
     }
 }
 
@@ -76,17 +74,17 @@ impl error::Error for ClientError {
 
 pub struct Error {
     kind: Kind,
-    source: Option<BoxError>
+    source: Option<BoxError>,
 }
 
 impl Error {
-    pub(super) fn new<E>(kind: Kind, source: Option<E>) -> Self 
+    pub fn new<E>(kind: Kind, source: Option<E>) -> Self
     where
         E: Into<BoxError>,
     {
         Error {
             kind,
-            source: source.map(Into::into)
+            source: source.map(Into::into),
         }
     }
 }
@@ -116,7 +114,7 @@ impl fmt::Display for Error {
         if let Some(ref source) = self.source {
             write!(f, "{:?}: {}", self.kind, source)
         } else {
-           write!(f, "No source for this error") 
+            write!(f, "No source for this error")
         }
     }
 }
@@ -163,8 +161,8 @@ impl From<serde_json::error::Error> for Error {
     }
 }
 
-impl From<hmac::crypto_mac::InvalidKeyLength> for Error {
-    fn from(error: hmac::crypto_mac::InvalidKeyLength) -> Self {
+impl From<hmac::digest::InvalidLength> for Error {
+    fn from(error: hmac::digest::InvalidLength) -> Self {
         Error::new(Kind::Hmac, Some(error))
     }
 }
