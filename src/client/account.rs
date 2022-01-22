@@ -387,8 +387,8 @@ impl AccountClient {
         )
     }
     /// Place a new oco order.
-    /// # Price Restrictions:                    
-    /// - SELL: Limit Price > Last Price > Stop Price             
+    /// # Price Restrictions:
+    /// - SELL: Limit Price > Last Price > Stop Price
     /// - BUY: Limit Price < Last Price < Stop Price
     /// # Example
     ///
@@ -751,6 +751,34 @@ impl AccountClient {
             Some(secret_key),
         )
     }
+
+    /// Cancel all Open Orders on a Symbol (TRADE)
+    /// https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
+    /// Fails with 400 when no open orders to cancel.
+    pub fn cancel_all_orders<'a>(
+        &self,
+        symbol: &'a str,
+    ) -> ParamBuilder<'a, '_, CancelAllOrdersParams> {
+        let Self {
+            ref api_key,
+            ref secret_key,
+            url,
+            client,
+        } = self;
+
+        let url = url.join("/api/v3/openOrders").unwrap();
+
+        ParamBuilder::new(
+            Parameters {
+                symbol: Some(symbol),
+                ..Parameters::default()
+            },
+            client.delete(url),
+            Some(api_key),
+            Some(secret_key),
+        )
+    }
+
     /// Helper method for getting a withdraw client instance.
     pub fn to_withdraw_client(&self) -> WithdrawalClient {
         WithdrawalClient {
@@ -773,6 +801,15 @@ impl AccountClient {
         GeneralClient {
             url: self.url.clone(),
             client: self.client.clone(),
+        }
+    }
+
+    /// Helper method for getting a user data client instance.
+    pub fn to_user_data_client(&self) -> UserDataClient {
+        UserDataClient {
+            api_key: self.api_key.clone(),
+            client: self.client.clone(),
+            url: self.url.clone(),
         }
     }
 }

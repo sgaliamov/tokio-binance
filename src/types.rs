@@ -213,3 +213,6 @@ impl Asset for AssetDividendParams {}
 impl StartTime for AssetDividendParams {}
 impl EndTime for AssetDividendParams {}
 impl RecvWindow for AssetDividendParams {}
+
+pub struct CancelAllOrdersParams;
+impl RecvWindow for CancelAllOrdersParams {}
