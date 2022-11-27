@@ -61,8 +61,8 @@ impl ClientError {
 }
 
 impl fmt::Display for ClientError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}. {}", self.code, self.reason, self.message)
     }
 }
 

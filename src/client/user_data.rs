@@ -6,9 +6,9 @@ use reqwest::{Client, Url};
 /// Client for dealing with the user data stream.
 #[derive(Clone)]
 pub struct UserDataClient {
-    api_key: String,
-    url: Url,
-    client: Client,
+    pub(super) api_key: String,
+    pub(super) url: Url,
+    pub(super) client: Client,
 }
 
 impl UserDataClient {
